@@ -1,15 +1,17 @@
-import { GoogleGenAI, Type, Schema } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { BookPlan, ChapterOutline } from "../types";
 
-const apiKey = process.env.API_KEY || '';
-
-// Initialize client securely
-const getClient = () => new GoogleGenAI({ apiKey });
+// Initialize client securely inside the function to avoid top-level env access issues
+const getClient = () => {
+  const apiKey = process.env.API_KEY as string;
+  return new GoogleGenAI({ apiKey });
+}
 
 export const generateBookPlan = async (topic: string): Promise<BookPlan> => {
   const ai = getClient();
   
-  const schema: Schema = {
+  // Define schema explicitly without strict Type dependency if possible, or use standard object
+  const schema = {
     type: Type.OBJECT,
     properties: {
       title: { type: Type.STRING, description: "A catchy, best-selling title for the ebook" },
