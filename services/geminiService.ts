@@ -1,16 +1,26 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { BookPlan, ChapterOutline } from "../types";
 
-// Initialize client securely inside the function to avoid top-level env access issues
+// Initialize client securely. 
+// We check if process exists to avoid 'ReferenceError' in strict browser environments.
 const getClient = () => {
-  const apiKey = process.env.API_KEY as string;
+  let apiKey = '';
+  try {
+    // @ts-ignore
+    if (typeof process !== 'undefined' && process.env) {
+      // @ts-ignore
+      apiKey = process.env.API_KEY || '';
+    }
+  } catch (e) {
+    console.warn("Could not access process.env");
+  }
+  
   return new GoogleGenAI({ apiKey });
 }
 
 export const generateBookPlan = async (topic: string): Promise<BookPlan> => {
   const ai = getClient();
   
-  // Define schema explicitly without strict Type dependency if possible, or use standard object
   const schema = {
     type: Type.OBJECT,
     properties: {
@@ -56,7 +66,6 @@ export const generateBookPlan = async (topic: string): Promise<BookPlan> => {
 export const generateBookCover = async (visualPrompt: string): Promise<string> => {
   const ai = getClient();
   
-  // Using Pro Image Preview for high quality "Ready for Sale" aesthetics
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-image-preview',
     contents: {
@@ -70,7 +79,6 @@ export const generateBookCover = async (visualPrompt: string): Promise<string> =
     }
   });
 
-  // Iterate parts to find the image
   for (const part of response.candidates?.[0]?.content?.parts || []) {
     if (part.inlineData) {
       return `data:image/png;base64,${part.inlineData.data}`;
@@ -88,7 +96,7 @@ export const generateChapterContent = async (
   const ai = getClient();
 
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash', // Flash is sufficient for text generation and faster
+    model: 'gemini-2.5-flash',
     contents: `Você é o autor do livro "${bookTitle}".
     Escreva o conteúdo completo do Capítulo ${chapterIndex + 1}: "${chapter.title}".
     
