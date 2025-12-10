@@ -1,0 +1,5 @@
+{
+  "name": "eBook AI Publisher",
+  "description": "Generate complete, ready-to-sell eBooks with 10 chapters, covers, and marketing copy using Gemini AI.",
+  "requestFramePermissions": []
+}
